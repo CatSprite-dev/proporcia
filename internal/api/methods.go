@@ -7,47 +7,50 @@ import (
 	"net/http"
 )
 
-func (client *Client) GetAccounts(ctx context.Context, token string, accountStatus AccountStatus) (Accounts, error) {
+func (c *Client) GetAccounts(ctx context.Context, token string, accountStatus AccountStatus) (Accounts, error) {
 	type AccountsRequest struct {
 		Status AccountStatus `json:"status,omitempty"`
 	}
 
-	url := client.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.UsersService/GetAccounts"
+	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.UsersService/GetAccounts"
 
 	payload := AccountsRequest{Status: accountStatus}
 
-	data, err := client.DoRequest(ctx, url, http.MethodPost, token, payload)
+	data, err := c.DoRequest(ctx, url, http.MethodPost, token, payload)
 	if err != nil {
-		return Accounts{}, fmt.Errorf("do request error (api.GetAccounts): %w", err)
+		return Accounts{}, fmt.Errorf("get accounts: %w", err)
 	}
 
 	var accounts Accounts
-	err = json.Unmarshal(data, &accounts)
-	if err != nil {
-		return Accounts{}, fmt.Errorf("unmarshal error (api.GetAccounts): %w", err)
+	if err := json.Unmarshal(data, &accounts); err != nil {
+		return Accounts{}, fmt.Errorf("unmarshal accounts: %w", err)
 	}
+
+	c.logger.Debug("accounts fetched", "count", len(accounts.Accounts))
+
 	return accounts, nil
 }
 
-func (client *Client) GetPortfolio(ctx context.Context, token string, accountID string) (Portfolio, error) {
+func (c *Client) GetPortfolio(ctx context.Context, token string, accountID string) (Portfolio, error) {
 	type PortfolioRequest struct {
 		AccountID string `json:"accountId"`
 	}
 
-	url := client.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.OperationsService/GetPortfolio"
+	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.OperationsService/GetPortfolio"
 
 	payload := PortfolioRequest{AccountID: accountID}
 
-	data, err := client.DoRequest(ctx, url, http.MethodPost, token, payload)
+	data, err := c.DoRequest(ctx, url, http.MethodPost, token, payload)
 	if err != nil {
-		return Portfolio{}, fmt.Errorf("do request error (GetPortfolio): %w", err)
+		return Portfolio{}, fmt.Errorf("get portfolio: %w", err)
 	}
 
-	var userPortfolio Portfolio
-	err = json.Unmarshal(data, &userPortfolio)
-	if err != nil {
-		return Portfolio{}, fmt.Errorf("unmarshal error (GetPortfolio): %w", err)
+	var portfolio Portfolio
+	if err := json.Unmarshal(data, &portfolio); err != nil {
+		return Portfolio{}, fmt.Errorf("unmarshal portfolio: %w", err)
 	}
 
-	return userPortfolio, nil
+	c.logger.Debug("portfolio fetched", "account_id", accountID, "positions", len(portfolio.Positions))
+
+	return portfolio, nil
 }
