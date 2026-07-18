@@ -1,0 +1,78 @@
+package api
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"sync/atomic"
+	"time"
+)
+
+type Client struct {
+	httpClient   http.Client
+	baseURL      string
+	requestCount atomic.Int64
+}
+
+func NewClient(baseURL string) *Client {
+	return &Client{
+		httpClient: http.Client{
+			Timeout: 15 * time.Second,
+		},
+		baseURL: baseURL,
+	}
+}
+
+type RequestError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e RequestError) Error() string {
+	return e.Message
+}
+
+func (client *Client) DoRequest(ctx context.Context, url string, httpMethod string, token string, payload interface{}) ([]byte, error) {
+	client.requestCount.Add(1)
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("payload marshal error: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, httpMethod, url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, fmt.Errorf("request creation error: %w", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	res, err := client.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request error: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, RequestError{StatusCode: res.StatusCode, Message: fmt.Sprintf("unexpected status code: %d", res.StatusCode)}
+	}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("response read error: %w", err)
+	}
+
+	return data, nil
+}
+
+func (client *Client) RequestCount() int64 {
+	return client.requestCount.Load()
+}
+
+func (client *Client) ResetRequestCount() {
+	client.requestCount.Store(0)
+}
