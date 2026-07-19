@@ -1,12 +1,19 @@
 package domain
 
 import (
+	"time"
+
 	"github.com/shopspring/decimal"
 )
 
 type Money struct {
 	Amount   decimal.Decimal
 	Currency string
+}
+
+type PriceInfo struct {
+	Price   decimal.Decimal
+	LotSize int
 }
 
 type Target struct {
@@ -25,9 +32,10 @@ type Account struct {
 }
 
 type Portfolio struct {
-	AccountID string `json:"accountId"`
-	Positions []Position
-	Total     Money `json:"total"`
+	AccountID             string `json:"accountId"`
+	Positions             []Position
+	Total                 Money `json:"total"`
+	TotalAmountCurrencies Money `json:"totalAmountCurrencies"`
 }
 
 type Position struct {
@@ -52,4 +60,13 @@ type Instrument struct {
 	Lot                   int    `json:"lot"`
 	UID                   string `json:"uid"`
 	Name                  string `json:"name"`
+}
+
+type LastPrice struct {
+	ClassCode     string          `json:"classCode"`
+	Ticker        string          `json:"ticker"`
+	Price         decimal.Decimal `json:"price"`
+	InstrumentUID string          `json:"instrumentUid"`
+	Figi          string          `json:"figi"`
+	Time          time.Time       `json:"time"`
 }

@@ -84,3 +84,14 @@ type Instruments struct {
 		Isin                  string    `json:"isin"`
 	} `json:"instruments"`
 }
+
+type LastPrices struct {
+	LastPrices []struct {
+		ClassCode     string    `json:"classCode"`
+		Ticker        string    `json:"ticker"`
+		Price         Quotation `json:"price"`
+		InstrumentUID string    `json:"instrumentUid"`
+		Figi          string    `json:"figi"`
+		Time          time.Time `json:"time"`
+	} `json:"lastPrices"`
+}

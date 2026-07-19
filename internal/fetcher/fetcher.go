@@ -71,3 +71,34 @@ func (f *Fetcher) FindInstrument(ctx context.Context, token string, ticker strin
 
 	return result, nil
 }
+
+func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []domain.Position, targets []domain.Target) (map[string]domain.PriceInfo, error) {
+	prices := make(map[string]domain.PriceInfo)
+	for _, target := range targets {
+		found := false
+		for _, position := range positions {
+			if position.Ticker == target.Ticker {
+				prices[target.Ticker] = domain.PriceInfo{
+					Price:   position.CurrentPrice.Amount,
+					LotSize: target.Lot,
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			price, err := f.apiClient.GetLastPrices(ctx, token, []string{target.Ticker}, api.LastPriceUnspecified, api.InstrumentStatusBase)
+			if err != nil {
+				return nil, fmt.Errorf("get last prices for %s: %w", target.Ticker, err)
+			}
+			if len(price.LastPrices) == 0 {
+				return nil, fmt.Errorf("no price data for %s", target.Ticker)
+			}
+			prices[target.Ticker] = domain.PriceInfo{
+				Price:   convertLastPrices(price)[0].Price,
+				LotSize: target.Lot,
+			}
+		}
+	}
+	return prices, nil
+}

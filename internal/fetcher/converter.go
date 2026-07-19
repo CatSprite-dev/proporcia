@@ -34,8 +34,9 @@ func convertAccounts(raw api.Accounts) []domain.Account {
 
 func convertPortfolio(raw api.Portfolio) domain.Portfolio {
 	portfolio := domain.Portfolio{
-		AccountID: raw.AccountID,
-		Total:     toMoney(raw.TotalAmountPortfolio),
+		AccountID:             raw.AccountID,
+		Total:                 toMoney(raw.TotalAmountPortfolio),
+		TotalAmountCurrencies: toMoney(raw.TotalAmountCurrencies),
 	}
 
 	portfolio.Positions = make([]domain.Position, len(raw.Positions))
@@ -72,4 +73,19 @@ func convertInstruments(raw api.Instruments) []domain.Instrument {
 		}
 	}
 	return instruments
+}
+
+func convertLastPrices(raw api.LastPrices) []domain.LastPrice {
+	lastPrices := make([]domain.LastPrice, len(raw.LastPrices))
+	for i, lp := range raw.LastPrices {
+		lastPrices[i] = domain.LastPrice{
+			ClassCode:     lp.ClassCode,
+			Ticker:        lp.Ticker,
+			Price:         toDecimal(lp.Price.Units, lp.Price.Nano),
+			InstrumentUID: lp.InstrumentUID,
+			Figi:          lp.Figi,
+			Time:          lp.Time,
+		}
+	}
+	return lastPrices
 }

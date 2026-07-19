@@ -8,10 +8,12 @@ import (
 	"syscall"
 
 	"github.com/CatSprite-dev/proporcia/internal/api"
+	"github.com/CatSprite-dev/proporcia/internal/balancer"
 	"github.com/CatSprite-dev/proporcia/internal/config"
 	"github.com/CatSprite-dev/proporcia/internal/fetcher"
 	"github.com/CatSprite-dev/proporcia/internal/storage"
 	"github.com/CatSprite-dev/proporcia/internal/targets"
+	"github.com/shopspring/decimal"
 )
 
 func main() {
@@ -67,4 +69,29 @@ func main() {
 	}
 
 	logger.Info("portfolio loaded", "positions", len(portfolio.Positions))
+
+	dbTargets, err := db.GetTargets(ctx)
+	if err != nil {
+		logger.Error("failed to get targets from database", "error", err)
+		os.Exit(1)
+	}
+	weights := make(map[string]decimal.Decimal)
+	for _, target := range dbTargets {
+		weights[target.Ticker] = target.Weight
+	}
+
+	deficits := balancer.Deficits(portfolio, weights)
+	prices, err := fetcher.ResolvePrices(ctx, cfg.Token, portfolio.Positions, dbTargets)
+	if err != nil {
+		logger.Error("failed to resolve prices", "error", err)
+		os.Exit(1)
+	}
+
+	realDeficits := balancer.AllocateCash(deficits, portfolio.TotalAmountCurrencies)
+
+	lotsToBuy := balancer.LotsToBuy(realDeficits, prices)
+
+	for ticker, lots := range lotsToBuy {
+		logger.Info("lots to buy", "ticker", ticker, "lots", lots)
+	}
 }

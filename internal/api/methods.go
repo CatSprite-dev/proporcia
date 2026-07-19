@@ -84,3 +84,39 @@ func (c *Client) FindInstruments(ctx context.Context, token string, query string
 
 	return instruments, nil
 }
+
+func (c *Client) GetLastPrices(
+	ctx context.Context,
+	token string,
+	instrumentIDs []string,
+	priceType lastPriceType,
+	instrStatus instrumentStatus,
+) (LastPrices, error) {
+	type GetLastPricesRequest struct {
+		InstrumentIDs    []string         `json:"instrumentIds"`
+		LastPriceType    lastPriceType    `json:"lastPriceType,omitempty"`
+		InstrumentStatus instrumentStatus `json:"instrumentStatus,omitempty"`
+	}
+
+	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.MarketDataService/GetLastPrices"
+
+	payload := GetLastPricesRequest{
+		InstrumentIDs:    instrumentIDs,
+		LastPriceType:    priceType,
+		InstrumentStatus: instrStatus,
+	}
+
+	data, err := c.DoRequest(ctx, url, http.MethodPost, token, payload)
+	if err != nil {
+		return LastPrices{}, fmt.Errorf("get last prices: %w", err)
+	}
+
+	var lastPrices LastPrices
+	if err := json.Unmarshal(data, &lastPrices); err != nil {
+		return LastPrices{}, fmt.Errorf("unmarshal last prices: %w", err)
+	}
+
+	c.logger.Debug("last prices fetched", "instrument count", len(lastPrices.LastPrices))
+
+	return lastPrices, nil
+}

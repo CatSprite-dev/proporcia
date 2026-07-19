@@ -25,3 +25,19 @@ const (
 	InstrumentTypeIndex               InstrumentType = "INSTRUMENT_TYPE_INDEX"
 	InstrumentTypeCommodity           InstrumentType = "INSTRUMENT_TYPE_COMMODITY"
 )
+
+type lastPriceType string
+
+const (
+	LastPriceUnspecified lastPriceType = "LAST_PRICE_UNSPECIFIED"
+	LastPriceExchange    lastPriceType = "LAST_PRICE_EXCHANGE"
+	LastPriceDealer      lastPriceType = "LAST_PRICE_DEALER"
+)
+
+type instrumentStatus string
+
+const (
+	InstrumentStatusUnspecified instrumentStatus = "INSTRUMENT_STATUS_UNSPECIFIED"
+	InstrumentStatusBase        instrumentStatus = "INSTRUMENT_STATUS_BASE"
+	InstrumentStatusAll         instrumentStatus = "INSTRUMENT_STATUS_ALL"
+)
