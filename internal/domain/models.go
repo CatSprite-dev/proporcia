@@ -1,6 +1,8 @@
 package domain
 
-import "github.com/shopspring/decimal"
+import (
+	"github.com/shopspring/decimal"
+)
 
 type Money struct {
 	Amount   decimal.Decimal
@@ -14,6 +16,7 @@ type Account struct {
 type Portfolio struct {
 	AccountID string `json:"accountId"`
 	Positions []Position
+	Total     Money `json:"total"`
 }
 
 type Position struct {
@@ -22,9 +25,19 @@ type Position struct {
 	Quantity             decimal.Decimal `json:"quantity"`
 	AveragePositionPrice Money           `json:"averagePositionPrice"`
 	CurrentPrice         Money           `json:"currentPrice"`
-	QuantityLots         decimal.Decimal `json:"quantityLots"`
 	PositionUID          string          `json:"positionUid"`
 	InstrumentUID        string          `json:"instrumentUid"`
 	Ticker               string          `json:"ticker"`
 	ClassCode            string          `json:"classCode"`
+}
+
+type Instrument struct {
+	ClassCode             string `json:"classCode"`
+	Ticker                string `json:"ticker"`
+	InstrumentType        string `json:"instrumentType"`
+	PositionUID           string `json:"positionUid"`
+	Figi                  string `json:"figi"`
+	APITradeAvailableFlag bool   `json:"apiTradeAvailableFlag"`
+	Lot                   int    `json:"lot"`
+	UID                   string `json:"uid"`
 }

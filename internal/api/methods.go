@@ -54,3 +54,33 @@ func (c *Client) GetPortfolio(ctx context.Context, token string, accountID strin
 
 	return portfolio, nil
 }
+
+func (c *Client) FindInstruments(ctx context.Context, token string, query string, instrumentKind InstrumentType, apiTradeAvailableFlag bool) (Instruments, error) {
+	type FindInstrumentsRequest struct {
+		Query                 string         `json:"query"`
+		InstrumentType        InstrumentType `json:"instrumentType,omitempty"`
+		ApiTradeAvailableFlag bool           `json:"apiTradeAvailableFlag,omitempty"`
+	}
+
+	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.InstrumentsService/FindInstruments"
+
+	payload := FindInstrumentsRequest{
+		Query:                 query,
+		InstrumentType:        instrumentKind,
+		ApiTradeAvailableFlag: apiTradeAvailableFlag,
+	}
+
+	data, err := c.DoRequest(ctx, url, http.MethodPost, token, payload)
+	if err != nil {
+		return Instruments{}, fmt.Errorf("find instruments: %w", err)
+	}
+
+	var instruments Instruments
+	if err := json.Unmarshal(data, &instruments); err != nil {
+		return Instruments{}, fmt.Errorf("unmarshal instruments: %w", err)
+	}
+
+	c.logger.Debug("instruments fetched", "query", query, "count", len(instruments.Instruments))
+
+	return instruments, nil
+}

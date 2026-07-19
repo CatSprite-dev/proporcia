@@ -63,3 +63,24 @@ type Position struct {
 	ClassCode                string     `json:"classCode"`
 	CurrentNkd               MoneyValue `json:"currentNkd,omitempty"`
 }
+
+type Instruments struct {
+	Instruments []struct {
+		WeekendFlag           bool      `json:"weekendFlag"`
+		ClassCode             string    `json:"classCode"`
+		Ticker                string    `json:"ticker"`
+		InstrumentType        string    `json:"instrumentType"`
+		ForQualInvestorFlag   bool      `json:"forQualInvestorFlag"`
+		ForIisFlag            bool      `json:"forIisFlag"`
+		PositionUID           string    `json:"positionUid"`
+		Figi                  string    `json:"figi"`
+		APITradeAvailableFlag bool      `json:"apiTradeAvailableFlag"`
+		First1MinCandleDate   time.Time `json:"first1minCandleDate"`
+		Lot                   int       `json:"lot"`
+		UID                   string    `json:"uid"`
+		BlockedTcaFlag        bool      `json:"blockedTcaFlag"`
+		Name                  string    `json:"name"`
+		First1DayCandleDate   time.Time `json:"first1dayCandleDate"`
+		Isin                  string    `json:"isin"`
+	} `json:"instruments"`
+}

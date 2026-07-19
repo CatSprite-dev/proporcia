@@ -42,3 +42,32 @@ func (f *Fetcher) GetPortfolio(ctx context.Context, token string, accountID stri
 
 	return portfolio, nil
 }
+
+func (f *Fetcher) FindInstrument(ctx context.Context, token string, ticker string) (domain.Instrument, error) {
+	raw, err := f.apiClient.FindInstruments(ctx, token, ticker, api.InstrumentTypeUnspecified, true)
+	if err != nil {
+		return domain.Instrument{}, fmt.Errorf("find instrument: %w", err)
+	}
+
+	instruments := convertInstruments(raw)
+
+	if len(instruments) == 0 {
+		return domain.Instrument{}, fmt.Errorf("instrument not found: %s", ticker)
+	}
+
+	var result domain.Instrument
+	found := false
+	for _, instrument := range instruments {
+		if instrument.Ticker == ticker && instrument.ClassCode == "TQBR" {
+			result = instrument
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return domain.Instrument{}, fmt.Errorf("instrument not found: %s", ticker)
+	}
+
+	return result, nil
+}
