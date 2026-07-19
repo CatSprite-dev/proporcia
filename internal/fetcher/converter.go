@@ -68,6 +68,7 @@ func convertInstruments(raw api.Instruments) []domain.Instrument {
 			APITradeAvailableFlag: inst.APITradeAvailableFlag,
 			Lot:                   inst.Lot,
 			UID:                   inst.UID,
+			Name:                  inst.Name,
 		}
 	}
 	return instruments

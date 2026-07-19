@@ -10,6 +10,8 @@ import (
 	"github.com/CatSprite-dev/proporcia/internal/api"
 	"github.com/CatSprite-dev/proporcia/internal/config"
 	"github.com/CatSprite-dev/proporcia/internal/fetcher"
+	"github.com/CatSprite-dev/proporcia/internal/storage"
+	"github.com/CatSprite-dev/proporcia/internal/targets"
 )
 
 func main() {
@@ -29,6 +31,23 @@ func main() {
 	client := api.NewClient(cfg.BaseURL, logger)
 
 	fetcher := fetcher.NewFetcher(client, logger)
+
+	db, err := storage.NewStorage(cfg.DBPath, logger)
+	if err != nil {
+		logger.Error("failed to initialize storage", "error", err)
+		os.Exit(1)
+	}
+
+	if err := db.Init(ctx); err != nil {
+		logger.Error("failed to initialize database", "error", err)
+		os.Exit(1)
+	}
+
+	err = targets.Sync(ctx, *cfg, db, fetcher, logger)
+	if err != nil {
+		logger.Error("failed to sync targets", "error", err)
+		os.Exit(1)
+	}
 
 	accounts, err := fetcher.GetAccounts(ctx, cfg.Token)
 	if err != nil {

@@ -9,8 +9,10 @@ import (
 )
 
 type Config struct {
-	BaseURL string
-	Token   string
+	BaseURL     string
+	Token       string
+	TargetsPath string
+	DBPath      string
 }
 
 func NewConfig() (*Config, error) {
@@ -30,8 +32,20 @@ func NewConfig() (*Config, error) {
 		return nil, errors.New("TOKEN is required")
 	}
 
+	targetsPath := os.Getenv("TARGETS_PATH")
+	if targetsPath == "" {
+		return nil, errors.New("TARGETS_PATH is required")
+	}
+
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		return nil, errors.New("DB_PATH is required")
+	}
+
 	return &Config{
-		BaseURL: baseURL,
-		Token:   token,
+		BaseURL:     baseURL,
+		Token:       token,
+		TargetsPath: targetsPath,
+		DBPath:      dbPath,
 	}, nil
 }

@@ -42,3 +42,5 @@ bin/
 # IDE
 .idea/
 .vscode/
+
+targets.json

@@ -62,7 +62,7 @@ func (c *Client) FindInstruments(ctx context.Context, token string, query string
 		ApiTradeAvailableFlag bool           `json:"apiTradeAvailableFlag,omitempty"`
 	}
 
-	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.InstrumentsService/FindInstruments"
+	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.InstrumentsService/FindInstrument"
 
 	payload := FindInstrumentsRequest{
 		Query:                 query,

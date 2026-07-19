@@ -9,6 +9,17 @@ type Money struct {
 	Currency string
 }
 
+type Target struct {
+	ID        int64           `json:"id"`
+	Name      string          `json:"name"`
+	Ticker    string          `json:"ticker"`
+	Weight    decimal.Decimal `json:"weight"`
+	UID       string          `json:"uid"`
+	ClassCode string          `json:"class_code"`
+	Lot       int             `json:"lot"`
+	Type      string          `json:"type"`
+}
+
 type Account struct {
 	ID string
 }
@@ -40,4 +51,5 @@ type Instrument struct {
 	APITradeAvailableFlag bool   `json:"apiTradeAvailableFlag"`
 	Lot                   int    `json:"lot"`
 	UID                   string `json:"uid"`
+	Name                  string `json:"name"`
 }
