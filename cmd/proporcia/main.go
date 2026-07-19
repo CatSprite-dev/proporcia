@@ -4,15 +4,21 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/CatSprite-dev/proporcia/internal/api"
 	"github.com/CatSprite-dev/proporcia/internal/config"
+	"github.com/CatSprite-dev/proporcia/internal/fetcher"
 )
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	cfg, err := config.NewConfig()
 	if err != nil {
@@ -22,18 +28,20 @@ func main() {
 
 	client := api.NewClient(cfg.BaseURL, logger)
 
-	accounts, err := client.GetAccounts(context.Background(), cfg.Token, api.AccountStatusUnspecified)
+	fetcher := fetcher.NewFetcher(client, logger)
+
+	accounts, err := fetcher.GetAccounts(ctx, cfg.Token)
 	if err != nil {
 		logger.Error("failed to get accounts", "error", err)
 		os.Exit(1)
 	}
 
-	if len(accounts.Accounts) == 0 {
+	if len(accounts) == 0 {
 		logger.Error("no accounts found")
 		os.Exit(1)
 	}
 
-	portfolio, err := client.GetPortfolio(context.Background(), cfg.Token, accounts.Accounts[0].ID)
+	portfolio, err := fetcher.GetPortfolio(ctx, cfg.Token, accounts[0].ID)
 	if err != nil {
 		logger.Error("failed to get portfolio", "error", err)
 		os.Exit(1)
