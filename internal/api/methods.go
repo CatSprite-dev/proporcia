@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 func (c *Client) GetAccounts(ctx context.Context, token string, accountStatus AccountStatus) (Accounts, error) {
@@ -89,13 +91,13 @@ func (c *Client) GetLastPrices(
 	ctx context.Context,
 	token string,
 	instrumentIDs []string,
-	priceType lastPriceType,
-	instrStatus instrumentStatus,
+	priceType LastPriceType,
+	instrStatus InstrumentStatus,
 ) (LastPrices, error) {
 	type GetLastPricesRequest struct {
 		InstrumentIDs    []string         `json:"instrumentIds"`
-		LastPriceType    lastPriceType    `json:"lastPriceType,omitempty"`
-		InstrumentStatus instrumentStatus `json:"instrumentStatus,omitempty"`
+		LastPriceType    LastPriceType    `json:"lastPriceType,omitempty"`
+		InstrumentStatus InstrumentStatus `json:"instrumentStatus,omitempty"`
 	}
 
 	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.MarketDataService/GetLastPrices"
@@ -119,4 +121,66 @@ func (c *Client) GetLastPrices(
 	c.logger.Debug("last prices fetched", "instrument count", len(lastPrices.LastPrices))
 
 	return lastPrices, nil
+}
+
+func (c *Client) PostOrder(
+	ctx context.Context,
+	token string,
+	quantity string,
+	price Quotation,
+	direction OrderDirection,
+	accountID string,
+	orderType OrderType,
+	orderID string,
+	instrumentID string,
+	timeInForce TimeInForce,
+	priceType PriceType,
+	confirmMarginTrade bool,
+) (PostOrderResponse, error) {
+
+	if orderID == "" {
+		orderID = uuid.NewString()
+	}
+
+	type PostOrderRequest struct {
+		Quantity           string         `json:"quantity"`
+		Price              Quotation      `json:"price,omitempty"`
+		Direction          OrderDirection `json:"direction"`
+		AccountID          string         `json:"accountId"`
+		OrderType          OrderType      `json:"orderType"`
+		OrderID            string         `json:"orderId"`
+		InstrumentID       string         `json:"instrumentId"`
+		TimeInForce        TimeInForce    `json:"timeInForce,omitempty"`
+		PriceType          PriceType      `json:"priceType,omitempty"`
+		ConfirmMarginTrade bool           `json:"confirmMarginTrade,omitempty"`
+	}
+
+	url := c.baseURL + "/rest/tinkoff.public.invest.api.contract.v1.OrdersService/PostOrder"
+
+	payload := PostOrderRequest{
+		Quantity:           quantity,
+		Price:              price,
+		Direction:          direction,
+		AccountID:          accountID,
+		OrderType:          orderType,
+		OrderID:            orderID,
+		InstrumentID:       instrumentID,
+		TimeInForce:        timeInForce,
+		PriceType:          priceType,
+		ConfirmMarginTrade: confirmMarginTrade,
+	}
+
+	data, err := c.DoRequest(ctx, url, http.MethodPost, token, payload)
+	if err != nil {
+		return PostOrderResponse{}, fmt.Errorf("post order: %w", err)
+	}
+
+	var resp PostOrderResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return PostOrderResponse{}, fmt.Errorf("unmarshal post order response: %w", err)
+	}
+
+	c.logger.Debug("order posted", "order_id", resp.OrderID, "ticker", resp.Ticker)
+
+	return resp, nil
 }

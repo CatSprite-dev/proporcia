@@ -95,3 +95,63 @@ type LastPrices struct {
 		Time          time.Time `json:"time"`
 	} `json:"lastPrices"`
 }
+
+// PostOrderResponse содержит информацию о выставленном торговом поручении.
+type PostOrderResponse struct {
+	// ClassCode — класс-код (секция торгов).
+	ClassCode string `json:"classCode"`
+
+	// Ticker — тикер инструмента.
+	Ticker string `json:"ticker"`
+
+	// OrderID — биржевой идентификатор заявки.
+	OrderID string `json:"orderId"`
+
+	// Figi — FIGI-идентификатор инструмента.
+	Figi string `json:"figi"`
+
+	// InitialOrderPrice — начальная цена заявки (произведение количества запрошенных лотов на цену).
+	InitialOrderPrice MoneyValue `json:"initialOrderPrice"`
+
+	// InitialCommission — начальная комиссия, рассчитанная при выставлении заявки.
+	InitialCommission MoneyValue `json:"initialCommission"`
+
+	// Message — дополнительные данные об исполнении заявки.
+	Message string `json:"message"`
+
+	// LotsExecuted — количество исполненных лотов.
+	LotsExecuted string `json:"lotsExecuted"`
+
+	// TotalOrderAmount — итоговая стоимость заявки, включающая все комиссии.
+	TotalOrderAmount MoneyValue `json:"totalOrderAmount"`
+
+	// LotsRequested — количество запрошенных лотов.
+	LotsRequested string `json:"lotsRequested"`
+
+	// InitialOrderPricePt — начальная цена заявки в пунктах (для фьючерсов).
+	InitialOrderPricePt Quotation `json:"initialOrderPricePt"`
+
+	// InstrumentUID — UID-идентификатор инструмента.
+	InstrumentUID string `json:"instrumentUid"`
+
+	// OrderRequestID — идентификатор ключа идемпотентности, переданный клиентом (в формате UID, до 36 символов).
+	OrderRequestID string `json:"orderRequestId"`
+
+	// ExecutedOrderPrice — исполненная средняя цена одного инструмента в заявке.
+	ExecutedOrderPrice MoneyValue `json:"executedOrderPrice"`
+
+	// ExecutedCommission — фактическая комиссия по итогам исполнения заявки.
+	ExecutedCommission MoneyValue `json:"executedCommission"`
+
+	// InitialSecurityPrice — начальная цена за 1 инструмент (для получения стоимости лота требуется умножить на лотность).
+	InitialSecurityPrice MoneyValue `json:"initialSecurityPrice"`
+
+	// AciValue — значение накопленного купонного дохода (НКД) на дату выставления торговых поручений.
+	AciValue MoneyValue `json:"aciValue"`
+
+	// ResponseMetadata — метаданные ответа от сервера (время сервера, tracking_id).
+	ResponseMetadata struct {
+		ServerTime time.Time `json:"serverTime"`
+		TrackingID string    `json:"trackingId"`
+	} `json:"responseMetadata"`
+}

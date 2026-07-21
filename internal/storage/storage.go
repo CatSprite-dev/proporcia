@@ -71,7 +71,7 @@ func (s *Storage) UpsertTarget(ctx context.Context, target domain.Target) error 
 	if _, err := s.conn.ExecContext(ctx, query, target.Name, target.Ticker, target.Weight.String(), target.UID, target.ClassCode, target.Lot, target.Type); err != nil {
 		return fmt.Errorf("upsert target: %w", err)
 	}
-	s.logger.Info("target upserted", "target", target.Ticker)
+	s.logger.Debug("target upserted", "target", target.Ticker)
 	return nil
 }
 

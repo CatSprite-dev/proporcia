@@ -83,3 +83,10 @@ func AllocateCash(deficits map[string]domain.Money, cash domain.Money) map[strin
 	}
 	return result
 }
+
+func BuyPlan(portfolio domain.Portfolio, weights map[string]decimal.Decimal, prices map[string]domain.PriceInfo, cash domain.Money) map[string]int {
+	deficits := Deficits(portfolio, weights)
+	realDeficits := AllocateCash(deficits, cash)
+	lotsToBuy := LotsToBuy(realDeficits, prices)
+	return lotsToBuy
+}

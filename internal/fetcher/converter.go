@@ -2,6 +2,7 @@ package fetcher
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/CatSprite-dev/proporcia/internal/api"
 	"github.com/CatSprite-dev/proporcia/internal/domain"
@@ -21,6 +22,26 @@ func toMoney(mv api.MoneyValue) domain.Money {
 	return domain.Money{
 		Amount:   toDecimal(mv.Units, mv.Nano),
 		Currency: mv.Currency,
+	}
+}
+
+func ToQuotation(d decimal.Decimal) api.Quotation {
+	units := d.Truncate(0)
+	nanoDecimal := d.Sub(units).Mul(decimal.NewFromInt(1_000_000_000))
+
+	return api.Quotation{
+		Units: units.String(),
+		Nano:  int(nanoDecimal.IntPart()),
+	}
+}
+
+func ToMoneyValue(m domain.Money) api.MoneyValue {
+	q := ToQuotation(m.Amount)
+
+	return api.MoneyValue{
+		Currency: m.Currency,
+		Units:    q.Units,
+		Nano:     q.Nano,
 	}
 }
 
@@ -88,4 +109,31 @@ func convertLastPrices(raw api.LastPrices) []domain.LastPrice {
 		}
 	}
 	return lastPrices
+}
+
+func ConvertPostOrderResponse(raw api.PostOrderResponse) domain.PostOrderResponse {
+	return domain.PostOrderResponse{
+		ClassCode:            raw.ClassCode,
+		Ticker:               raw.Ticker,
+		OrderID:              raw.OrderID,
+		Figi:                 raw.Figi,
+		InitialOrderPrice:    toMoney(raw.InitialOrderPrice),
+		InitialCommission:    toMoney(raw.InitialCommission),
+		Message:              raw.Message,
+		LotsExecuted:         raw.LotsExecuted,
+		TotalOrderAmount:     toMoney(raw.TotalOrderAmount),
+		LotsRequested:        raw.LotsRequested,
+		InstrumentUID:        raw.InstrumentUID,
+		OrderRequestID:       raw.OrderRequestID,
+		ExecutedOrderPrice:   toMoney(raw.ExecutedOrderPrice),
+		ExecutedCommission:   toMoney(raw.ExecutedCommission),
+		InitialSecurityPrice: toMoney(raw.InitialSecurityPrice),
+		ResponseMetadata: struct {
+			ServerTime time.Time "json:\"serverTime\""
+			TrackingID string    "json:\"trackingId\""
+		}{
+			ServerTime: raw.ResponseMetadata.ServerTime,
+			TrackingID: raw.ResponseMetadata.TrackingID,
+		},
+	}
 }

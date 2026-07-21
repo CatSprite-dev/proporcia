@@ -26,18 +26,52 @@ const (
 	InstrumentTypeCommodity           InstrumentType = "INSTRUMENT_TYPE_COMMODITY"
 )
 
-type lastPriceType string
+type LastPriceType string
 
 const (
-	LastPriceUnspecified lastPriceType = "LAST_PRICE_UNSPECIFIED"
-	LastPriceExchange    lastPriceType = "LAST_PRICE_EXCHANGE"
-	LastPriceDealer      lastPriceType = "LAST_PRICE_DEALER"
+	LastPriceUnspecified LastPriceType = "LAST_PRICE_UNSPECIFIED"
+	LastPriceExchange    LastPriceType = "LAST_PRICE_EXCHANGE"
+	LastPriceDealer      LastPriceType = "LAST_PRICE_DEALER"
 )
 
-type instrumentStatus string
+type InstrumentStatus string
 
 const (
-	InstrumentStatusUnspecified instrumentStatus = "INSTRUMENT_STATUS_UNSPECIFIED"
-	InstrumentStatusBase        instrumentStatus = "INSTRUMENT_STATUS_BASE"
-	InstrumentStatusAll         instrumentStatus = "INSTRUMENT_STATUS_ALL"
+	InstrumentStatusUnspecified InstrumentStatus = "INSTRUMENT_STATUS_UNSPECIFIED"
+	InstrumentStatusBase        InstrumentStatus = "INSTRUMENT_STATUS_BASE"
+	InstrumentStatusAll         InstrumentStatus = "INSTRUMENT_STATUS_ALL"
+)
+
+type OrderDirection string
+
+const (
+	OrderDirectionUnspecified OrderDirection = "ORDER_DIRECTION_UNSPECIFIED"
+	OrderDirectionBuy         OrderDirection = "ORDER_DIRECTION_BUY"
+	OrderDirectionSell        OrderDirection = "ORDER_DIRECTION_SELL"
+)
+
+type OrderType string
+
+const (
+	OrderTypeUnspecified OrderType = "ORDER_TYPE_UNSPECIFIED"
+	OrderTypeLimit       OrderType = "ORDER_TYPE_LIMIT"
+	OrderTypeMarket      OrderType = "ORDER_TYPE_MARKET"
+	OrderTypeBestPrice   OrderType = "ORDER_TYPE_BESTPRICE"
+)
+
+type TimeInForce string
+
+const (
+	TimeInForceUnspecified TimeInForce = "TIME_IN_FORCE_UNSPECIFIED"
+	TimeInForceDay         TimeInForce = "TIME_IN_FORCE_DAY"
+	TimeInForceFillAndKill TimeInForce = "TIME_IN_FORCE_FILL_AND_KILL"
+	TimeInForceFillOrKill  TimeInForce = "TIME_IN_FORCE_FILL_OR_KILL"
+)
+
+type PriceType string
+
+const (
+	PriceTypeUnspecified PriceType = "PRICE_TYPE_UNSPECIFIED"
+	PriceTypePoint       PriceType = "PRICE_TYPE_POINT"
+	PriceTypeCurrency    PriceType = "PRICE_TYPE_CURRENCY"
 )

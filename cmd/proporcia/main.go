@@ -80,18 +80,15 @@ func main() {
 		weights[target.Ticker] = target.Weight
 	}
 
-	deficits := balancer.Deficits(portfolio, weights)
 	prices, err := fetcher.ResolvePrices(ctx, cfg.Token, portfolio.Positions, dbTargets)
 	if err != nil {
 		logger.Error("failed to resolve prices", "error", err)
 		os.Exit(1)
 	}
 
-	realDeficits := balancer.AllocateCash(deficits, portfolio.TotalAmountCurrencies)
+	buyPlan := balancer.BuyPlan(portfolio, weights, prices, portfolio.TotalAmountCurrencies)
 
-	lotsToBuy := balancer.LotsToBuy(realDeficits, prices)
-
-	for ticker, lots := range lotsToBuy {
+	for ticker, lots := range buyPlan {
 		logger.Info("lots to buy", "ticker", ticker, "lots", lots)
 	}
 }
