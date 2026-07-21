@@ -73,7 +73,9 @@ func (f *Fetcher) FindInstrument(ctx context.Context, token string, ticker strin
 }
 
 func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []domain.Position, targets []domain.Target) (map[string]domain.PriceInfo, error) {
-	prices := make(map[string]domain.PriceInfo)
+	prices := make(map[string]domain.PriceInfo, len(targets))
+	var missingTargets []domain.Target
+
 	for _, target := range targets {
 		found := false
 		for _, position := range positions {
@@ -87,18 +89,55 @@ func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []d
 			}
 		}
 		if !found {
-			price, err := f.apiClient.GetLastPrices(ctx, token, []string{target.Ticker}, api.LastPriceUnspecified, api.InstrumentStatusBase)
-			if err != nil {
-				return nil, fmt.Errorf("get last prices for %s: %w", target.Ticker, err)
-			}
-			if len(price.LastPrices) == 0 {
-				return nil, fmt.Errorf("no price data for %s", target.Ticker)
-			}
-			prices[target.Ticker] = domain.PriceInfo{
-				Price:   convertLastPrices(price)[0].Price,
-				LotSize: target.Lot,
-			}
+			missingTargets = append(missingTargets, target)
 		}
 	}
+
+	if len(missingTargets) == 0 {
+		return prices, nil
+	}
+
+	instrumentIDs := make([]string, 0, len(missingTargets))
+	for _, target := range missingTargets {
+		if target.UID != "" {
+			instrumentIDs = append(instrumentIDs, target.UID)
+		}
+	}
+
+	if len(instrumentIDs) == 0 {
+		return nil, fmt.Errorf("missing targets have no valid UIDs")
+	}
+	lastPricesResp, err := f.apiClient.GetLastPrices(
+		ctx,
+		token,
+		instrumentIDs,
+		api.LastPriceUnspecified,
+		api.InstrumentStatusBase,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get last prices batch: %w", err)
+	}
+
+	convertedPrices := convertLastPrices(lastPricesResp)
+
+	priceMap := make(map[string]domain.LastPrice, len(convertedPrices))
+	for _, p := range convertedPrices {
+		if p.InstrumentUID != "" {
+			priceMap[p.InstrumentUID] = p
+		}
+	}
+
+	for _, target := range missingTargets {
+		lastPrice, ok := priceMap[target.UID]
+		if !ok {
+			return nil, fmt.Errorf("no price returned for UID %s (%s)", target.UID, target.Ticker)
+		}
+
+		prices[target.Ticker] = domain.PriceInfo{
+			Price:   lastPrice.Price,
+			LotSize: target.Lot,
+		}
+	}
+
 	return prices, nil
 }

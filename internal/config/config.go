@@ -27,7 +27,7 @@ func NewConfig() (*Config, error) {
 		return nil, errors.New("T_INVEST_URL is required")
 	}
 
-	token := os.Getenv("TOKEN")
+	token := os.Getenv("TOKEN_TORG")
 	if token == "" {
 		return nil, errors.New("TOKEN is required")
 	}

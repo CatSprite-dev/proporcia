@@ -11,6 +11,7 @@ import (
 	"github.com/CatSprite-dev/proporcia/internal/balancer"
 	"github.com/CatSprite-dev/proporcia/internal/config"
 	"github.com/CatSprite-dev/proporcia/internal/fetcher"
+	"github.com/CatSprite-dev/proporcia/internal/orders"
 	"github.com/CatSprite-dev/proporcia/internal/storage"
 	"github.com/CatSprite-dev/proporcia/internal/targets"
 	"github.com/shopspring/decimal"
@@ -88,7 +89,19 @@ func main() {
 
 	buyPlan := balancer.BuyPlan(portfolio, weights, prices, portfolio.TotalAmountCurrencies)
 
-	for ticker, lots := range buyPlan {
-		logger.Info("lots to buy", "ticker", ticker, "lots", lots)
+	orderService := orders.NewOrderService(client, db, logger)
+	responses, err := orderService.Buy(ctx, cfg.Token, portfolio.AccountID, buyPlan)
+	if err != nil {
+		logger.Error("failed to buy targets", "error", err)
+		os.Exit(1)
+	}
+
+	for _, resp := range responses {
+		logger.Info("order executed",
+			"ticker", resp.Ticker,
+			"order_id", resp.OrderID,
+			"lots_executed", resp.LotsExecuted,
+			"total_amount", resp.TotalOrderAmount.Amount,
+		)
 	}
 }

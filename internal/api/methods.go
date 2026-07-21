@@ -95,7 +95,7 @@ func (c *Client) GetLastPrices(
 	instrStatus InstrumentStatus,
 ) (LastPrices, error) {
 	type GetLastPricesRequest struct {
-		InstrumentIDs    []string         `json:"instrumentIds"`
+		InstrumentIDs    []string         `json:"instrumentId"`
 		LastPriceType    LastPriceType    `json:"lastPriceType,omitempty"`
 		InstrumentStatus InstrumentStatus `json:"instrumentStatus,omitempty"`
 	}
