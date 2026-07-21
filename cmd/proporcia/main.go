@@ -90,6 +90,7 @@ func main() {
 	buyPlan := balancer.BuyPlan(portfolio, weights, prices, portfolio.TotalAmountCurrencies)
 
 	orderService := orders.NewOrderService(client, db, logger)
+
 	responses, err := orderService.Buy(ctx, cfg.Token, portfolio.AccountID, buyPlan)
 	if err != nil {
 		logger.Error("failed to buy targets", "error", err)

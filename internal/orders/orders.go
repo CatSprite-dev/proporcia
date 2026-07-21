@@ -39,7 +39,7 @@ func (os *OrderService) PostOrder(
 		fetcher.ToQuotation(price),
 		api.OrderDirectionBuy,
 		accountID,
-		api.OrderTypeBestPrice,
+		api.OrderTypeMarket,
 		orderID,
 		instrumentID,
 		api.TimeInForceUnspecified,
@@ -69,7 +69,8 @@ func (os *OrderService) Buy(ctx context.Context, token string, accountID string,
 			}
 			postOrderResp, err := os.PostOrder(ctx, token, strconv.Itoa(lots), decimal.Zero, accountID, "", target.UID)
 			if err != nil {
-				return []domain.PostOrderResponse{}, fmt.Errorf("buy target: %w", err)
+				os.logger.Error("buy target failed", "ticker", target.Ticker, "error", err)
+				continue
 			}
 			responses = append(responses, postOrderResp)
 		}

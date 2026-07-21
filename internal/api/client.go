@@ -54,7 +54,8 @@ func (c *Client) DoRequest(ctx context.Context, url string, httpMethod string, t
 	defer res.Body.Close()
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return nil, fmt.Errorf("unexpected status %d: %s", res.StatusCode, res.Status)
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("unexpected status %d: %s: %s", res.StatusCode, res.Status, string(body))
 	}
 
 	data, err := io.ReadAll(res.Body)
