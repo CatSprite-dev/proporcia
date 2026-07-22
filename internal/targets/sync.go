@@ -53,12 +53,12 @@ func Sync(ctx context.Context, cfg config.Config, storage *storage.Storage, fetc
 				return fmt.Errorf("find instrument for ticker %s: %w", t.Ticker, err)
 			}
 			target = domain.Target{
-				Name:      instrument.Name,
-				Ticker:    t.Ticker,
-				UID:       instrument.UID,
-				ClassCode: instrument.ClassCode,
-				Lot:       instrument.Lot,
-				Type:      instrument.InstrumentType,
+				Name:          instrument.Name,
+				Ticker:        t.Ticker,
+				InstrumentUID: instrument.InstrumentUID,
+				ClassCode:     instrument.ClassCode,
+				Lot:           instrument.Lot,
+				Type:          instrument.InstrumentType,
 			}
 			added++
 		} else {

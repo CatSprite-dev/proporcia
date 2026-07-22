@@ -7,14 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/CatSprite-dev/proporcia/internal/api"
-	"github.com/CatSprite-dev/proporcia/internal/balancer"
-	"github.com/CatSprite-dev/proporcia/internal/config"
-	"github.com/CatSprite-dev/proporcia/internal/fetcher"
-	"github.com/CatSprite-dev/proporcia/internal/orders"
-	"github.com/CatSprite-dev/proporcia/internal/storage"
-	"github.com/CatSprite-dev/proporcia/internal/targets"
-	"github.com/shopspring/decimal"
+	"github.com/CatSprite-dev/proporcia/internal/app"
 )
 
 func main() {
@@ -22,87 +15,24 @@ func main() {
 		Level: slog.LevelDebug,
 	}))
 
+	logger.Info("starting application...")
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	cfg, err := config.NewConfig()
+	application, err := app.New(ctx, logger)
 	if err != nil {
-		logger.Error("failed to load config", "error", err)
+		logger.Error("failed to init app", "error", err)
 		os.Exit(1)
 	}
+	defer application.Close()
 
-	client := api.NewClient(cfg.BaseURL, logger)
-
-	fetcher := fetcher.NewFetcher(client, logger)
-
-	db, err := storage.NewStorage(cfg.DBPath, logger)
+	logger.Info("running portfolio rebalance...")
+	err = application.Run(ctx)
 	if err != nil {
-		logger.Error("failed to initialize storage", "error", err)
+		logger.Error("application run failed", "error", err)
 		os.Exit(1)
 	}
 
-	if err := db.Init(ctx); err != nil {
-		logger.Error("failed to initialize database", "error", err)
-		os.Exit(1)
-	}
-
-	err = targets.Sync(ctx, *cfg, db, fetcher, logger)
-	if err != nil {
-		logger.Error("failed to sync targets", "error", err)
-		os.Exit(1)
-	}
-
-	accounts, err := fetcher.GetAccounts(ctx, cfg.Token)
-	if err != nil {
-		logger.Error("failed to get accounts", "error", err)
-		os.Exit(1)
-	}
-
-	if len(accounts) == 0 {
-		logger.Error("no accounts found")
-		os.Exit(1)
-	}
-
-	portfolio, err := fetcher.GetPortfolio(ctx, cfg.Token, accounts[0].ID)
-	if err != nil {
-		logger.Error("failed to get portfolio", "error", err)
-		os.Exit(1)
-	}
-
-	logger.Info("portfolio loaded", "positions", len(portfolio.Positions))
-
-	dbTargets, err := db.GetTargets(ctx)
-	if err != nil {
-		logger.Error("failed to get targets from database", "error", err)
-		os.Exit(1)
-	}
-	weights := make(map[string]decimal.Decimal)
-	for _, target := range dbTargets {
-		weights[target.Ticker] = target.Weight
-	}
-
-	prices, err := fetcher.ResolvePrices(ctx, cfg.Token, portfolio.Positions, dbTargets)
-	if err != nil {
-		logger.Error("failed to resolve prices", "error", err)
-		os.Exit(1)
-	}
-
-	buyPlan := balancer.BuyPlan(portfolio, weights, prices, portfolio.TotalAmountCurrencies)
-
-	orderService := orders.NewOrderService(client, db, logger)
-
-	responses, err := orderService.Buy(ctx, cfg.Token, portfolio.AccountID, buyPlan)
-	if err != nil {
-		logger.Error("failed to buy targets", "error", err)
-		os.Exit(1)
-	}
-
-	for _, resp := range responses {
-		logger.Info("order executed",
-			"ticker", resp.Ticker,
-			"order_id", resp.OrderID,
-			"lots_executed", resp.LotsExecuted,
-			"total_amount", resp.TotalOrderAmount.Amount,
-		)
-	}
+	logger.Info("application finished successfully")
 }

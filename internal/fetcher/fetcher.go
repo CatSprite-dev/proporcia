@@ -7,6 +7,7 @@ import (
 
 	"github.com/CatSprite-dev/proporcia/internal/api"
 	"github.com/CatSprite-dev/proporcia/internal/domain"
+	"github.com/shopspring/decimal"
 )
 
 type Fetcher struct {
@@ -79,8 +80,8 @@ func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []d
 	for _, target := range targets {
 		found := false
 		for _, position := range positions {
-			if position.Ticker == target.Ticker {
-				prices[target.Ticker] = domain.PriceInfo{
+			if position.InstrumentUID == target.InstrumentUID {
+				prices[target.InstrumentUID] = domain.PriceInfo{
 					Price:   position.CurrentPrice.Amount,
 					LotSize: target.Lot,
 				}
@@ -99,8 +100,8 @@ func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []d
 
 	instrumentIDs := make([]string, 0, len(missingTargets))
 	for _, target := range missingTargets {
-		if target.UID != "" {
-			instrumentIDs = append(instrumentIDs, target.UID)
+		if target.InstrumentUID != "" {
+			instrumentIDs = append(instrumentIDs, target.InstrumentUID)
 		}
 	}
 
@@ -128,12 +129,16 @@ func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []d
 	}
 
 	for _, target := range missingTargets {
-		lastPrice, ok := priceMap[target.UID]
+		lastPrice, ok := priceMap[target.InstrumentUID]
 		if !ok {
-			return nil, fmt.Errorf("no price returned for UID %s (%s)", target.UID, target.Ticker)
+			return nil, fmt.Errorf("no price returned for UID %s (%s)", target.InstrumentUID, target.Ticker)
 		}
 
-		prices[target.Ticker] = domain.PriceInfo{
+		if lastPrice.Price.IsZero() || lastPrice.Price.LessThanOrEqual(decimal.Zero) {
+			return nil, fmt.Errorf("zero or negative price returned for %s (%s)", target.Ticker, target.InstrumentUID)
+		}
+
+		prices[target.InstrumentUID] = domain.PriceInfo{
 			Price:   lastPrice.Price,
 			LotSize: target.Lot,
 		}

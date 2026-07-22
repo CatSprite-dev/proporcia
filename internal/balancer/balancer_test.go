@@ -15,14 +15,14 @@ func TestDeficits(t *testing.T) {
 		},
 		Positions: []domain.Position{
 			{
-				Ticker:       "GAZP",
-				Quantity:     decimal.NewFromInt(100),
-				CurrentPrice: domain.Money{Amount: decimal.NewFromInt(100), Currency: "RUB"},
+				InstrumentUID: "GAZP",
+				Quantity:      decimal.NewFromInt(100),
+				CurrentPrice:  domain.Money{Amount: decimal.NewFromInt(100), Currency: "RUB"},
 			},
 			{
-				Ticker:       "LKOH",
-				Quantity:     decimal.NewFromInt(10),
-				CurrentPrice: domain.Money{Amount: decimal.NewFromInt(500), Currency: "RUB"},
+				InstrumentUID: "LKOH",
+				Quantity:      decimal.NewFromInt(10),
+				CurrentPrice:  domain.Money{Amount: decimal.NewFromInt(500), Currency: "RUB"},
 			},
 		},
 	}
@@ -52,9 +52,9 @@ func TestDeficits_OverweightPositionSkipped(t *testing.T) {
 		},
 		Positions: []domain.Position{
 			{
-				Ticker:       "SBER",
-				Quantity:     decimal.NewFromInt(100),
-				CurrentPrice: domain.Money{Amount: decimal.NewFromInt(100), Currency: "RUB"},
+				InstrumentUID: "SBER",
+				Quantity:      decimal.NewFromInt(100),
+				CurrentPrice:  domain.Money{Amount: decimal.NewFromInt(100), Currency: "RUB"},
 			},
 		},
 	}
@@ -89,14 +89,14 @@ func TestDeficits_EmptyPortfolio(t *testing.T) {
 	}
 }
 
-func checkDeficit(t *testing.T, result map[string]domain.Money, ticker string, expected decimal.Decimal) {
+func checkDeficit(t *testing.T, result map[string]domain.Money, InstrumentUID string, expected decimal.Decimal) {
 	t.Helper()
-	got, ok := result[ticker]
+	got, ok := result[InstrumentUID]
 	if !ok {
-		t.Fatalf("expected deficit for %s, got none", ticker)
+		t.Fatalf("expected deficit for %s, got none", InstrumentUID)
 	}
 	if !got.Amount.Equal(expected) {
-		t.Errorf("%s: expected deficit %s, got %s", ticker, expected, got.Amount)
+		t.Errorf("%s: expected deficit %s, got %s", InstrumentUID, expected, got.Amount)
 	}
 }
 
@@ -147,7 +147,7 @@ func TestLotsToBuy_MissingPriceSkipped(t *testing.T) {
 	result := LotsToBuy(deficits, prices)
 
 	if _, ok := result["UNKNOWN"]; ok {
-		t.Errorf("expected no entry for ticker without price info")
+		t.Errorf("expected no entry for InstrumentUID without price info")
 	}
 }
 

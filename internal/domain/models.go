@@ -17,14 +17,14 @@ type PriceInfo struct {
 }
 
 type Target struct {
-	ID        int64           `json:"id"`
-	Name      string          `json:"name"`
-	Ticker    string          `json:"ticker"`
-	Weight    decimal.Decimal `json:"weight"`
-	UID       string          `json:"uid"`
-	ClassCode string          `json:"class_code"`
-	Lot       int             `json:"lot"`
-	Type      string          `json:"type"`
+	ID            int64           `json:"id"`
+	Name          string          `json:"name"`
+	Ticker        string          `json:"ticker"`
+	Weight        decimal.Decimal `json:"weight"`
+	InstrumentUID string          `json:"instrumentUid"`
+	ClassCode     string          `json:"class_code"`
+	Lot           int             `json:"lot"`
+	Type          string          `json:"type"`
 }
 
 type Account struct {
@@ -58,7 +58,7 @@ type Instrument struct {
 	Figi                  string `json:"figi"`
 	APITradeAvailableFlag bool   `json:"apiTradeAvailableFlag"`
 	Lot                   int    `json:"lot"`
-	UID                   string `json:"uid"`
+	InstrumentUID         string `json:"instrumentUid"`
 	Name                  string `json:"name"`
 }
 
