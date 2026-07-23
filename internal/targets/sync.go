@@ -14,6 +14,16 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// allowedInstrumentTypes ограничивает бота только акциями и облигациями
+var allowedInstrumentTypes = map[string]bool{
+	"share": true,
+	"bond":  true,
+}
+
+func isAllowedInstrumentType(instrumentType string) bool {
+	return allowedInstrumentTypes[instrumentType]
+}
+
 type discTarget struct {
 	Ticker string          `json:"ticker"`
 	Weight decimal.Decimal `json:"weight"`
@@ -51,6 +61,9 @@ func Sync(ctx context.Context, cfg config.Config, storage *storage.Storage, fetc
 			instrument, err := fetcher.FindInstrument(ctx, cfg.Token, t.Ticker)
 			if err != nil {
 				return fmt.Errorf("find instrument for ticker %s: %w", t.Ticker, err)
+			}
+			if !isAllowedInstrumentType(instrument.InstrumentType) {
+				return fmt.Errorf("instrument type not allowed for %s: %s", t.Ticker, instrument.InstrumentType)
 			}
 			target = domain.Target{
 				Name:          instrument.Name,
