@@ -24,7 +24,7 @@ func isAllowedInstrumentType(instrumentType string) bool {
 	return allowedInstrumentTypes[instrumentType]
 }
 
-type discTarget struct {
+type diskTarget struct {
 	Ticker string          `json:"ticker"`
 	Weight decimal.Decimal `json:"weight"`
 }
@@ -34,9 +34,17 @@ func Sync(ctx context.Context, cfg config.Config, storage *storage.Storage, fetc
 	if err != nil {
 		return fmt.Errorf("read targets file: %w", err)
 	}
-	var discTargets []discTarget
+	var discTargets []diskTarget
 	if err := json.Unmarshal(targetsDisk, &discTargets); err != nil {
 		return fmt.Errorf("unmarshal targets: %w", err)
+	}
+
+	totalWeight := decimal.Zero
+	for _, t := range discTargets {
+		totalWeight = totalWeight.Add(t.Weight)
+	}
+	if !totalWeight.Equal(decimal.NewFromInt(1)) {
+		return fmt.Errorf("target weights must sum to 1, got %s", totalWeight)
 	}
 
 	dbTargets, err := storage.GetTargets(ctx)
