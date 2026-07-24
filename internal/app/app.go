@@ -87,7 +87,9 @@ func (a *App) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to resolve prices: %w", err)
 	}
 
-	buyPlan := balancer.BuyPlan(portfolio, weights, prices, portfolio.TotalAmountCurrencies)
+	cash := a.fetcherService.GetAvailableCash(portfolio.Positions)
+
+	buyPlan := balancer.BuyPlan(portfolio, weights, prices, cash)
 
 	orders, err := a.orderService.Buy(ctx, a.cfg.Token, portfolio.AccountID, buyPlan)
 	if err != nil {

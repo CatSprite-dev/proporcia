@@ -146,3 +146,12 @@ func (f *Fetcher) ResolvePrices(ctx context.Context, token string, positions []d
 
 	return prices, nil
 }
+
+func (f *Fetcher) GetAvailableCash(positions []domain.Position) domain.Money {
+	for _, pos := range positions {
+		if pos.Ticker == "RUB000UTSTOM" && pos.InstrumentType == "currency" && pos.ClassCode == "CETS" {
+			return domain.Money{Amount: pos.Quantity, Currency: pos.CurrentPrice.Currency}
+		}
+	}
+	return domain.Money{Amount: decimal.Zero, Currency: "RUB"}
+}
